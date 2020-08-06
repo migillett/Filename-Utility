@@ -9,7 +9,7 @@ import os
 invalid_chars = ['"', '?', '!', ';', ':', '%', '*', '#', '&']
 
 
-def main(folder):
+def main(folder, rename=False):
 
     errors = 0
     corrected = 0
@@ -26,28 +26,41 @@ def main(folder):
                     old_name = os.path.join(root, file)
 
                     errors += 1
+                    if rename:
+                        # deletes invalid char
+                        new_name = os.path.join(root, file.replace(char, ''))
 
-                    # deletes invalid char
-                    new_name = os.path.join(root, file.replace(char, ''))
+                        # gets rid of double spaces (separate from above)
+                        # just in case invalid chars don't have spaces around them
+                        new_name = new_name.replace('  ', ' ')
 
-                    # gets rid of double spaces (separate from above)
-                    # just in case invalid chars don't have spaces around them
-                    new_name = new_name.replace('  ', ' ')
+                        try:
+                            os.rename(old_name, new_name)
+                        except FileExistsError:
+                            print('File already exists. Skipping.')
+                            continue
+                        except FileNotFoundError:
+                            print('Warning: file not found. Could have been renamed already. Run program again.')
+                            continue
 
-                    try:
-                        os.rename(old_name, new_name)
-                    except FileExistsError:
-                        print('File already exists. Skipping.')
-                        continue
-                    except FileNotFoundError:
-                        print('Warning: file not found. Could have been renamed already. Run program again.')
-                        continue
-
-                    print('New filename:', new_name)
-                    corrected += 1
+                        print('New filename:', new_name)
+                        corrected += 1
+            
 
     print('\nSearch complete.\nTotal errors: {0}\nTotal corrected: {1}'.format(errors, corrected))
 
 
 if __name__ == '__main__':
-    main(str(input('Folder to analyze:')))
+    folder = str(input('Folder to analyze:'))
+    while True:
+        rename = str(input('Do you want this program to rename files for you? (Y/N):'))
+        if rename.upper() == 'Y':
+            rename = True
+            break
+        elif rename.upper() == 'N':
+            rename = False
+            break
+        else:
+            input('Please select Y or N. Press enter to continue.')
+            
+    main(folder, rename)
